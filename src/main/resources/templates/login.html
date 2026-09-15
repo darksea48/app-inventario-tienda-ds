@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Ingresar - app-inventario-tienda</title>
+</head>
+<body>
+<h1>Iniciar sesión</h1>
+
+<p th:if="${error}" th:text="${error}" style="color:red;" id="mensaje-error"></p>
+
+<form method="post" th:action="@{/login}">
+    <label for="usuario">Usuario</label>
+    <input type="text" id="usuario" name="usuario" required>
+
+    <label for="clave">Clave</label>
+    <input type="password" id="clave" name="clave" required>
+
+    <button type="submit" id="btn-ingresar">Ingresar</button>
+</form>
+</body>
+</html>
