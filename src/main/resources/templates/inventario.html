@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Inventario - app-inventario-tienda</title>
+</head>
+<body>
+<h1>Inventario</h1>
+<p>Sesión iniciada como: <span th:text="${usuario}"></span> (<a href="/logout">salir</a>)</p>
+
+<p th:if="${error}" th:text="${error}" style="color:red;" id="mensaje-error"></p>
+
+<table id="tabla-inventario">
+    <thead>
+    <tr><th>SKU</th><th>Nombre</th><th>Stock</th></tr>
+    </thead>
+    <tbody>
+    <tr th:each="producto : ${productos}">
+        <td th:text="${producto.sku}"></td>
+        <td th:text="${producto.nombre}"></td>
+        <td th:id="'stock-' + ${producto.sku}" th:text="${producto.stock}"></td>
+    </tr>
+    </tbody>
+</table>
+
+<h2>Registrar salida de stock</h2>
+<form method="post" th:action="@{/inventario/salida}">
+    <label for="sku">SKU</label>
+    <input type="text" id="sku" name="sku" required>
+
+    <label for="cantidad-salida">Cantidad</label>
+    <input type="number" id="cantidad-salida" name="cantidad" min="1" required>
+
+    <button type="submit" id="btn-registrar-salida">Registrar salida</button>
+</form>
+</body>
+</html>
