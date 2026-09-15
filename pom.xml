@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ============================================================================
+  Examen Final | Automatización de Pruebas (ADP1323)
+  Proyecto: app-inventario-tienda
+  Objetivo: aplicación Spring Boot con pruebas unitarias (JUnit 5), de
+            integración (Selenium) y de aceptación (Cucumber/Gherkin),
+            integradas a un pipeline de CI/CD con análisis de seguridad
+            (SAST/DAST) y despliegue Blue-Green.
+  ============================================================================
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.3.4</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>cl.iplacex.examen</groupId>
+    <artifactId>app-inventario-tienda</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+    <name>app-inventario-tienda</name>
+    <description>Examen Final ADP1323 - inventario con CI (unitarias + integracion + SAST) y CD Blue-Green (acceptance BDD + DAST)</description>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <selenium.version>4.24.0</selenium.version>
+        <webdrivermanager.version>5.9.2</webdrivermanager.version>
+        <cucumber.version>7.15.0</cucumber.version>
+        <junit.platform.version>1.10.2</junit.platform.version>
+        <surefire.version>3.2.5</surefire.version>
+        <failsafe.version>3.2.5</failsafe.version>
+        <dependency-check.version>10.0.4</dependency-check.version>
+        <rest-assured.version>5.4.0</rest-assured.version>
+    </properties>
+
+    <dependencies>
+        <!-- ================= APLICACION ================= -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-thymeleaf</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+            <!-- Expone /actuator/health, usado por el health-check de CD -->
+        </dependency>
+
+        <!-- ================= PRUEBAS UNITARIAS ================= -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+            <!-- Trae JUnit 5 (Jupiter), Mockito y AssertJ -->
+        </dependency>
+
+        <!-- ================= PRUEBAS DE INTEGRACION (Selenium) ================= -->
+        <dependency>
+            <groupId>org.seleniumhq.selenium</groupId>
+            <artifactId>selenium-java</artifactId>
+            <version>${selenium.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.github.bonigarcia</groupId>
+            <artifactId>webdrivermanager</artifactId>
+            <version>${webdrivermanager.version}</version>
+            <scope>test</scope>
+            <!-- Descarga y gestiona el driver de Chrome automaticamente -->
+        </dependency>
+
+        <!-- ================= PRUEBAS DE ACEPTACION / BDD (Cucumber) ================= -->
+        <dependency>
+            <groupId>io.cucumber</groupId>
+            <artifactId>cucumber-java</artifactId>
+            <version>${cucumber.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.cucumber</groupId>
+            <artifactId>cucumber-junit-platform-engine</artifactId>
+            <version>${cucumber.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.platform</groupId>
+            <artifactId>junit-platform-suite</artifactId>
+            <version>${junit.platform.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Cliente HTTP fluido para el paso de health-check en la aceptacion -->
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <version>${rest-assured.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+
+            <!-- Surefire: SOLO pruebas unitarias (rapidas, en la fase 'test') -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${surefire.version}</version>
+                <configuration>
+                    <includes>
+                        <include>**/unit/**/*Test.java</include>
+                    </includes>
+                    <testFailureIgnore>false</testFailureIgnore>
+                </configuration>
+            </plugin>
+
+            <!--
+              Failsafe: pruebas de INTEGRACION (Selenium), en las fases
+              'integration-test' / 'verify'.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>${failsafe.version}</version>
+                <configuration>
+                    <includes>
+                        <include>**/integration/**/*IT.java</include>
+                    </includes>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!--
+              SAST/SCA: analiza las dependencias declaradas en busca de CVEs
+              conocidos. Se invoca a mano en CI (no esta enganchado al ciclo
+              de vida por defecto para no ralentizar cada build local).
+            -->
+            <plugin>
+                <groupId>org.owasp</groupId>
+                <artifactId>dependency-check-maven</artifactId>
+                <version>${dependency-check.version}</version>
+                <configuration>
+                    <failBuildOnCVSS>9</failBuildOnCVSS>
+                    <formats>
+                        <format>HTML</format>
+                        <format>JSON</format>
+                    </formats>
+                </configuration>
+            </plugin>
+
+            <!-- Reporte HTML navegable de Surefire -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-report-plugin</artifactId>
+                <version>${surefire.version}</version>
+            </plugin>
+        </plugins>
+    </build>
+</project>
