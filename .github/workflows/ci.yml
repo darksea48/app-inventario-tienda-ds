@@ -1,0 +1,104 @@
+# =============================================================================
+#  PIPELINE DE INTEGRACIÓN CONTINUA (Commit Stage) — Examen Final ADP1323
+#  Etapas: build -> pruebas unitarias -> pruebas de integración (Selenium)
+#          -> análisis de seguridad (SAST/SCA) -> reportes -> notificación
+# =============================================================================
+name: CI - Build y Pruebas Automatizadas
+
+on:
+  push:
+    branches: [ master, 'feature/**' ]
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build + pruebas unitarias + pruebas de integración
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Descargar el código
+        uses: actions/checkout@v4
+
+      - name: Configurar JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Compilar el proyecto
+        run: mvn -B clean compile
+
+      - name: Ejecutar pruebas UNITARIAS (JUnit 5 / Surefire)
+        run: mvn -B test
+
+      - name: Ejecutar pruebas de INTEGRACIÓN (Selenium / Failsafe)
+        run: mvn -B verify -DskipTests=false
+        # Chrome ya viene preinstalado en el runner ubuntu-latest;
+        # WebDriverManager descarga el chromedriver compatible en tiempo de ejecución.
+
+      - name: Analizar dependencias en busca de CVEs (SCA)
+        run: mvn -B org.owasp:dependency-check-maven:check
+
+      - name: Generar reporte HTML navegable (Surefire + Failsafe)
+        if: always()
+        run: mvn -B surefire-report:report-only site:site -DgenerateReports=false
+
+      - name: Publicar resultados en el resumen del build
+        uses: dorny/test-reporter@v1
+        if: always()
+        with:
+          name: Resultados de pruebas
+          path: 'target/surefire-reports/*.xml,target/failsafe-reports/*.xml'
+          reporter: java-junit
+          fail-on-error: false
+
+      - name: Publicar artefacto (JAR) y reportes
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: build-y-reportes
+          path: |
+            target/*.jar
+            target/surefire-reports/
+            target/failsafe-reports/
+            target/site/
+            target/dependency-check-report.html
+          retention-days: 30
+
+      - name: Alerta a Slack si el build falló
+        if: failure()
+        uses: slackapi/slack-github-action@v1.26.0
+        with:
+          payload: |
+            {
+              "text": ":rotating_light: *CI fallido* en `${{ github.repository }}`\n*Rama:* ${{ github.ref_name }}\n*Commit:* ${{ github.sha }}\n<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}|Ver ejecución>"
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+
+  sast:
+    name: Análisis estático de código (CodeQL)
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Inicializar CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: java
+
+      - name: Compilar para el análisis
+        run: mvn -B -DskipTests clean compile
+
+      - name: Ejecutar análisis CodeQL
+        uses: github/codeql-action/analyze@v3
