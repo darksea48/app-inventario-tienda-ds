@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: cl.iplacex.examen.integration.LoginInventarioSeleniumIT
 -------------------------------------------------------------------------------
-Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 9.256 s -- in cl.iplacex.examen.integration.LoginInventarioSeleniumIT
+Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 13.84 s -- in cl.iplacex.examen.integration.LoginInventarioSeleniumIT
