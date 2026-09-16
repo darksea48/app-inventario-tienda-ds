@@ -34,6 +34,17 @@
     <properties>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
+
+        <!--
+          Spring Boot 4.1.1 trae por defecto Tomcat 11.0.24, que tiene 4 CVEs
+          criticas/altas (CVE-2026-65905, CVE-2026-68525, CVE-2026-65182,
+          CVE-2026-65637) segun el propio aviso de seguridad de Apache Tomcat
+          (tomcat.apache.org/security-11.html): todas quedan resueltas desde
+          la 11.0.25. Se fuerza a la 11.0.26 (la mas reciente publicada en
+          Maven Central) sobreescribiendo la propiedad que expone el BOM de
+          Spring Boot para este fin.
+        -->
+        <tomcat.version>11.0.26</tomcat.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
         <selenium.version>4.24.0</selenium.version>
