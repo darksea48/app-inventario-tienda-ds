@@ -1,0 +1,12 @@
+# Perfil usado por los contenedores BLUE/GREEN del entorno de pruebas (§4.1
+# del informe). No cambia el comportamiento de la app -- documenta que este
+# es un ambiente distinto al local, para separar "configuracion del entorno"
+# de "configuracion del codigo fuente" (Unidad I, gestion de configuracion).
+spring:
+  thymeleaf:
+    cache: true
+
+management:
+  endpoint:
+    health:
+      show-details: always
