@@ -201,6 +201,40 @@ jobs:
         with:
           path: reportes/
 
+      # download-artifact solo deja los reportes crudos (jar, XML de
+      # Surefire, HTML de dependency-check, JSON de k6) sin ninguna pagina
+      # de inicio que los enlace, asi que la URL raiz del dashboard daba
+      # 404 pese a publicarse correctamente. Se genera un indice simple
+      # para que el dashboard sea realmente navegable como dice el
+      # comentario de mas abajo.
+      - name: Generar indice del dashboard
+        if: github.ref == 'refs/heads/master'
+        run: |
+          cat > reportes/index.html <<'HTML'
+          <!DOCTYPE html>
+          <html lang="es">
+          <head>
+            <meta charset="UTF-8">
+            <title>Dashboard - app-inventario-tienda</title>
+            <style>
+              body { font-family: sans-serif; max-width: 720px; margin: 2rem auto; line-height: 1.6; }
+              h1 { font-size: 1.4rem; }
+              ul { padding-left: 1.2rem; }
+              a { color: #0969da; }
+            </style>
+          </head>
+          <body>
+            <h1>Dashboard de CI - app-inventario-tienda</h1>
+            <p>Reportes generados por el pipeline de CI en la ultima ejecucion sobre master.</p>
+            <ul>
+              <li><a href="build-y-reportes/dependency-check-report.html">Reporte de dependencias (OWASP Dependency-Check)</a></li>
+              <li><a href="build-y-reportes/site/surefire-report.html">Reporte de pruebas unitarias (Surefire)</a></li>
+              <li><a href="reporte-performance-k6/summary.json">Resumen de performance (k6, JSON)</a></li>
+            </ul>
+          </body>
+          </html>
+          HTML
+
       # Publica los reportes en GitHub Pages: URL fija y navegable para
       # todo el equipo, sin necesidad de descargar artefactos.
       # Requiere habilitar Settings -> Pages -> Source: rama "gh-pages".
