@@ -72,7 +72,11 @@ jobs:
             -Dacceptance.target.url=http://localhost:${{ steps.color.outputs.puerto_inactivo }}
 
       - name: Escaneo de seguridad dinámico (DAST) con OWASP ZAP
-        uses: zaproxy/action-baseline@v0.12.0
+        # v0.12.0 usaba una integracion con upload-artifact ya deprecada,
+        # lo que causaba fallos intermitentes 'Create Artifact Container
+        # failed: ... is not valid' al subir el reporte zap_scan (bug
+        # conocido, corregido en v0.14.0 al actualizar esa dependencia).
+        uses: zaproxy/action-baseline@v0.15.0
         with:
           target: 'http://localhost:${{ steps.color.outputs.puerto_inactivo }}'
           cmd_options: '-a'
