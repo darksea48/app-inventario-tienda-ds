@@ -53,11 +53,35 @@ docker compose -f deploy/docker-compose.yml up -d --build
 mvn test -Dtest=BddAcceptanceRunner -Dacceptance.target.url=http://localhost:8082
 ```
 
+## Prueba de performance (k6)
+
+```bash
+# En una terminal: levantar la app
+mvn spring-boot:run
+
+# En otra terminal: instalar k6 (https://k6.io/docs/get-started/installation/)
+# y correr la prueba de carga sobre el login
+k6 run performance/login-performance.js
+```
+
 ## Pipelines
 
-- `.github/workflows/ci.yml`: se dispara en cada push/PR. Compila, corre
-  pruebas unitarias y de integración, analiza dependencias y código
-  (SAST/SCA), publica reportes y avisa por Slack si algo falla.
+Este proyecto integra el trabajo de las tres unidades del curso: control de
+versiones y pruebas unitarias atómicas (Unidad I), un pipeline de CI con
+pruebas de integración, análisis de seguridad, performance, dashboard y
+alertas (Unidad II), y un pipeline de CD con Blue-Green, DAST y rollback
+(Unidad III).
+
+- `.github/workflows/ci.yml`: se dispara en cada push/PR. Corre en 4 jobs:
+  - `build-and-test`: compila, corre pruebas unitarias y de integración,
+    analiza dependencias (SCA) y publica reportes; avisa por Slack si falla.
+  - `sast`: análisis estático de código con CodeQL.
+  - `performance`: levanta la app y corre una prueba de carga con k6 sobre
+    el login (perfil escalonado, umbrales de latencia/errores).
+  - `reportes-y-alertas`: descarga todos los reportes (unitarias,
+    integración, performance) y los publica como dashboard navegable en
+    GitHub Pages; si `build-and-test` falla en `master`, abre un issue
+    automático.
 - `.github/workflows/cd.yml`: se dispara cuando el CI de `master` termina
   en verde. Despliega al color inactivo, corre acceptance tests BDD y un
   escaneo DAST, conmuta el tráfico, monitorea la salud del despliegue,
@@ -73,6 +97,7 @@ app-inventario-tienda/
 ├── .github/workflows/          # ci.yml, cd.yml
 ├── deploy/                     # docker-compose, script de conmutación, monitoreo
 ├── docs/                       # capturas de evidencia, log de auditoría
+├── performance/                # prueba de carga (k6) sobre el login
 ├── src/main/java/...           # aplicación (dominio + controladores)
 ├── src/main/resources/         # vistas Thymeleaf, configuración por entorno
 ├── src/test/java/.../unit/         # pruebas unitarias (JUnit 5)
