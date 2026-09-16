@@ -33,6 +33,11 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     environment: staging   # habilita el gate/aprobación de GitHub Environments (§4.6)
+    env:
+      # Los secrets no se pueden usar directamente en un "if:" de un step;
+      # se exponen primero como variable de entorno del job para poder
+      # condicionar sobre ella (queda vacía si el secret no esta configurado).
+      SLACK_WEBHOOK_CONFIGURADO: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -117,7 +122,13 @@ jobs:
           retention-days: 90
 
       - name: Alerta a Slack ante rollback
-        if: steps.monitoreo.outcome == 'failure'
+        # Ademas de exigir que el monitoreo haya fallado, se exige que el
+        # secret SLACK_WEBHOOK_URL este configurado: sin esta condicion, la
+        # accion de Slack falla con "Need to provide at least one botToken
+        # or webhookUrl" cuando el repo no tiene el webhook configurado
+        # (como es el caso de este examen), tumbando todo el job aunque el
+        # rollback en si haya funcionado correctamente.
+        if: steps.monitoreo.outcome == 'failure' && env.SLACK_WEBHOOK_CONFIGURADO == 'true'
         uses: slackapi/slack-github-action@v1.26.0
         with:
           payload: |
