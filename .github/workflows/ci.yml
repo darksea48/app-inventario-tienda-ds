@@ -54,6 +54,7 @@ jobs:
           key: dependency-check-data-${{ steps.semana.outputs.semana }}
           restore-keys: |
             dependency-check-data-
+          save-always: true
 
       - name: Analizar dependencias en busca de CVEs (SCA)
         run: mvn -B org.owasp:dependency-check-maven:check
@@ -69,7 +70,7 @@ jobs:
         if: always()
         with:
           name: Resultados de pruebas
-          path: 'target/surefire-reports/*.xml,target/failsafe-reports/*.xml'
+          path: 'target/surefire-reports/TEST-*.xml,target/failsafe-reports/TEST-*.xml'
           reporter: java-junit
           fail-on-error: false
 
