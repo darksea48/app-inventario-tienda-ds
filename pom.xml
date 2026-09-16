@@ -208,6 +208,19 @@
                       pegarle a la API del NVD directamente.
                     -->
                     <nvdDatafeedUrl>https://dependency-check.github.io/DependencyCheck_Builder/nvd_cache/nvdcve-{0}.json.gz</nvdDatafeedUrl>
+                    <!--
+                      El Analizador de Sonatype OSS Index viene habilitado por
+                      defecto, pero este proyecto no tiene credenciales de OSS
+                      Index configuradas (no son necesarias: la deteccion de
+                      vulnerabilidades ya la entrega el NVD/datafeed de arriba).
+                      Sin credenciales, sus llamadas devuelven 401 y, de forma
+                      inconsistente, esto a veces solo desactiva el analizador
+                      (build sigue) y a veces escala a un MojoExecutionException
+                      fatal (build falla) aunque no exista ninguna vulnerabilidad
+                      real por CVSS. Se desactiva el analizador por completo para
+                      evitar ese comportamiento fatal e inconsistente.
+                    -->
+                    <ossindexAnalyzerEnabled>false</ossindexAnalyzerEnabled>
                 </configuration>
             </plugin>
 
