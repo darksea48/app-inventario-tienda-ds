@@ -54,7 +54,16 @@
         <surefire.version>3.2.5</surefire.version>
         <failsafe.version>3.2.5</failsafe.version>
         <dependency-check.version>10.0.4</dependency-check.version>
-        <rest-assured.version>5.4.0</rest-assured.version>
+        <!--
+          Spring Boot 4.1.1 trae Groovy 5.x en su BOM, pero rest-assured
+          5.4.0 solo soporta Groovy 4.x: esto provoca un NullPointerException
+          en ClosureMetaClass.invokeOnDelegationObject al hacer peticiones GET
+          (falla el acceptance test BDD que consulta /actuator/health en el
+          despliegue Blue-Green). rest-assured 6.0.1 soporta Groovy 5 de forma
+          nativa y resuelve el problema sin cambios de API para el uso tipico
+          (RestAssured.get(...), jsonPath(), etc).
+        -->
+        <rest-assured.version>6.0.1</rest-assured.version>
     </properties>
 
     <dependencies>
