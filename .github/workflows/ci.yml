@@ -48,13 +48,13 @@ jobs:
         run: echo "semana=$(date +%Y-W%V)" >> "$GITHUB_OUTPUT"
 
       - name: Restaurar cache de la base de datos de CVEs (OWASP NVD)
-        uses: actions/cache@v4
+        id: cache-nvd
+        uses: actions/cache/restore@v4
         with:
           path: .dependency-check-data
           key: dependency-check-data-${{ steps.semana.outputs.semana }}
           restore-keys: |
             dependency-check-data-
-          save-always: true
 
       - name: Analizar dependencias en busca de CVEs (SCA)
         run: mvn -B org.owasp:dependency-check-maven:check
@@ -86,6 +86,13 @@ jobs:
             target/site/
             target/dependency-check-report.html
           retention-days: 30
+
+      - name: Guardar cache de la base de datos de CVEs (OWASP NVD)
+        if: always() && steps.cache-nvd.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: .dependency-check-data
+          key: dependency-check-data-${{ steps.semana.outputs.semana }}
 
       - name: Alerta a Slack si el build falló
         if: failure()
