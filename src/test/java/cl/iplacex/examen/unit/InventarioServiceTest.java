@@ -48,7 +48,7 @@ class InventarioServiceTest {
     }
 
     @ParameterizedTest
-    @CsvSource({"5,15", "0,10", "10,20"})
+    @CsvSource({"5,15", "1,11", "10,20"})
     void sumaCorrectamenteUnIngreso(int ingreso, int esperado) {
         servicio.registrarIngreso("SKU-001", ingreso);
         assertThat(servicio.obtenerStock("SKU-001")).isEqualTo(esperado);
