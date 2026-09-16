@@ -77,6 +77,13 @@ jobs:
           target: 'http://localhost:${{ steps.color.outputs.puerto_inactivo }}'
           cmd_options: '-a'
           fail_action: false
+          # No necesitamos que ZAP abra/actualice un Issue de GitHub con el
+          # reporte (no tenemos ese flujo de triage configurado para el examen),
+          # y el token del workflow no tiene permiso issues:write, lo que hacia
+          # fallar este paso con 'Resource not accessible by integration' al
+          # intentar crear el issue (aunque fail_action=false evita que el
+          # build fallara por hallazgos de ZAP en si).
+          allow_issue_writing: false
 
       - name: Conmutar tráfico al color recién validado
         run: ./deploy/blue-green-switch.sh --to ${{ steps.color.outputs.inactivo }}
