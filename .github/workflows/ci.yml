@@ -43,8 +43,22 @@ jobs:
         # Chrome ya viene preinstalado en el runner ubuntu-latest;
         # WebDriverManager descarga el chromedriver compatible en tiempo de ejecución.
 
+      - name: Calcular clave de cache semanal (BD de CVEs)
+        id: semana
+        run: echo "semana=$(date +%Y-W%V)" >> "$GITHUB_OUTPUT"
+
+      - name: Restaurar cache de la base de datos de CVEs (OWASP NVD)
+        uses: actions/cache@v4
+        with:
+          path: .dependency-check-data
+          key: dependency-check-data-${{ steps.semana.outputs.semana }}
+          restore-keys: |
+            dependency-check-data-
+
       - name: Analizar dependencias en busca de CVEs (SCA)
         run: mvn -B org.owasp:dependency-check-maven:check
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
 
       - name: Generar reporte HTML navegable (Surefire + Failsafe)
         if: always()

@@ -170,6 +170,20 @@
                         <format>HTML</format>
                         <format>JSON</format>
                     </formats>
+                    <!--
+                      La BD de CVEs del NVD se guarda aqui, en una ruta fija
+                      dentro del checkout, para poder cachearla entre
+                      ejecuciones de CI (ver ci.yml, paso "Restaurar cache
+                      de la base de datos de CVEs"). Sin esto, cada corrida
+                      de GitHub Actions parte de una maquina nueva y hay que
+                      descargar los ~400.000 registros del NVD desde cero.
+                    -->
+                    <dataDirectory>${project.basedir}/.dependency-check-data</dataDirectory>
+                    <!-- Lee la API key del NVD desde esta variable de entorno
+                         (secreto NVD_API_KEY en CI) en lugar de pedirla por
+                         linea de comandos: sin ella, el NVD limita mucho las
+                         descargas y la sincronizacion es muy lenta. -->
+                    <nvdApiKeyEnvironmentVariable>NVD_API_KEY</nvdApiKeyEnvironmentVariable>
                 </configuration>
             </plugin>
 

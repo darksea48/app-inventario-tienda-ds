@@ -1,6 +1,7 @@
 target/
 *.class
 *.log
+.dependency-check-data/
 
 # IDE
 .idea/
