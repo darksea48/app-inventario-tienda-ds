@@ -7,6 +7,8 @@
             integración (Selenium) y de aceptación (Cucumber/Gherkin),
             integradas a un pipeline de CI/CD con análisis de seguridad
             (SAST/DAST) y despliegue Blue-Green.
+
+            Uso para examen final del curso Automatización de Pruebas (ADP1323)
   ============================================================================
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0"
@@ -184,6 +186,17 @@
                          linea de comandos: sin ella, el NVD limita mucho las
                          descargas y la sincronizacion es muy lenta. -->
                     <nvdApiKeyEnvironmentVariable>NVD_API_KEY</nvdApiKeyEnvironmentVariable>
+                    <!--
+                      El NVD API en vivo viene fallando de forma intermitente con
+                      errores 524/503 al hacer la sincronizacion completa (~394.000
+                      registros): es una limitacion conocida de la infraestructura
+                      del NVD tras su despliegue de junio 2026, confirmada por los
+                      propios mantenedores de dependency-check (no es un bug del
+                      plugin). El workaround oficial es usar este espejo estatico
+                      (hosteado en GitHub Pages por el propio proyecto) en vez de
+                      pegarle a la API del NVD directamente.
+                    -->
+                    <nvdDatafeedUrl>https://dependency-check.github.io/DependencyCheck_Builder/nvd_cache/nvdcve-{0}.json.gz</nvdDatafeedUrl>
                 </configuration>
             </plugin>
 
