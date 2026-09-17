@@ -94,8 +94,30 @@ jobs:
           # build fallara por hallazgos de ZAP en si).
           allow_issue_writing: false
 
+      - name: "Evidencia (CAPTURA 06): estado ANTES de la conmutación"
+        # Como los runners de GitHub son efimeros (ver nota al inicio del
+        # archivo), no hay forma de inspeccionar "docker ps" ni el nginx
+        # activo desde fuera del propio runner una vez terminado el job.
+        # Este paso deja esa evidencia impresa directamente en el log de
+        # esta ejecucion, que es autocontenida y verificable por cualquiera
+        # con acceso al repo (Actions -> esta ejecucion -> este step).
+        run: |
+          echo "===== docker ps (antes de conmutar) ====="
+          docker ps --format 'table {{.Names}}\t{{.Image}}\t{{.Ports}}\t{{.Status}}'
+          echo
+          echo "===== deploy/nginx-activo.conf (antes de conmutar) ====="
+          cat deploy/nginx-activo.conf
+
       - name: Conmutar tráfico al color recién validado
         run: ./deploy/blue-green-switch.sh --to ${{ steps.color.outputs.inactivo }}
+
+      - name: "Evidencia (CAPTURA 06): estado DESPUÉS de la conmutación"
+        run: |
+          echo "===== docker ps (despues de conmutar) ====="
+          docker ps --format 'table {{.Names}}\t{{.Image}}\t{{.Ports}}\t{{.Status}}'
+          echo
+          echo "===== deploy/nginx-activo.conf (despues de conmutar) ====="
+          cat deploy/nginx-activo.conf
 
       - name: Monitorear salud del color activo (ventana de 2 minutos)
         id: monitoreo
